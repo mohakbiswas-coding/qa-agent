@@ -1,88 +1,80 @@
-# 🤖 Autonomous QA Agent
+# 🤖 QA Agent
 
-An intelligent QA agent that builds a "testing brain" from project documentation and generates comprehensive test cases and Selenium automation scripts.
+A personal project that leverages AI to automate QA test case generation and Selenium script creation. The agent reads project documentation, builds a knowledge base, and intelligently generates test cases and automation scripts based on your project specifications.
 
-## 🛠️ Tech Stack
-- **Backend:** FastAPI + Uvicorn
-- **Frontend:** Streamlit
-- **AI/LLM:** Groq API (LLaMA 3.3 70B - llama-3.3-70b-versatile) — free tier
+## About
+
+This project came from the idea of reducing manual test case creation. Instead of manually writing test cases from documentation, you can feed the agent your project specs and have it generate comprehensive test cases that cover happy paths, edge cases, and error scenarios. The generated test cases can then be automatically converted into runnable Selenium scripts.
+
+The agent uses a Retrieval-Augmented Generation (RAG) approach—it parses your documentation, converts it into embeddings, stores it in a vector database, and retrieves relevant context when generating test cases. This ensures the generated tests are always aligned with your actual project requirements.
+
+## How It Works
+
+1. **Upload Documentation** → Agent parses PDFs, HTML, JSON, Markdown, text files
+2. **Build Knowledge Base** → Documents are split into chunks and converted to embeddings, then stored in ChromaDB
+3. **Generate Test Cases** → Feed a natural language prompt (e.g., "Test discount code validation"), and the agent retrieves relevant docs and generates structured test cases using LLaMA 3.3 70B
+4. **Generate Selenium Scripts** → Pick a test case and convert it into a runnable Python script with Selenium
+
+## Tech Stack
+
+- **Backend:** FastAPI + Uvicorn (REST API for KB building and test generation)
+- **Frontend:** Streamlit (interactive web interface)
+- **LLM:** Groq API with LLaMA 3.3 70B (fast, free inference)
 - **Embeddings:** sentence-transformers (all-MiniLM-L6-v2)
-- **Vector DB:** ChromaDB
-- **Document Parsing:** PyMuPDF, BeautifulSoup4
+- **Vector DB:** ChromaDB (local persistent storage)
+- **Document Parsing:** pdfplumber, BeautifulSoup4
+- **Text Processing:** LangChain (text splitting and chunking)
 
-## 📋 Prerequisites
-- Python 3.10+
-- Chrome browser (for running Selenium scripts)
-- Groq API key (free at https://console.groq.com)
+## Project Structure
 
-## ⚡ Quick Start
-
-### 1. Clone and setup
-```bash
-git clone https://github.com/YOUR_USERNAME/qa-agent.git
-cd qa-agent
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+```
+qa-agent/
+├── backend/
+│   ├── main.py                 # FastAPI server with KB and test generation endpoints
+│   ├── knowledge_base.py       # Document parsing, chunking, embeddings, ChromaDB
+│   ├── test_case_agent.py      # RAG-based test case generation
+│   └── selenium_agent.py       # Selenium script generation
+├── frontend/
+│   └── app.py                  # Streamlit UI with 3-phase workflow
+├── assets/                     # Example documentation files
+│   ├── checkout.html
+│   ├── product_specs.md
+│   ├── validation_rules.md
+│   ├── ui_ux_guide.txt
+│   ├── api_endpoints.json
+│   └── error_messages.md
+└── chroma_db/                  # Local vector database storage
 ```
 
-### 2. Configure API key
-Create `.env` in root:
-```
-GROQ_API_KEY=your_key_here
-```
+## Getting Started
 
-### 3. Start the backend (Terminal 1)
-```bash
-cd backend
-python main.py
-# API runs at http://localhost:8000
-# Docs at http://localhost:8000/docs
-```
+Requires Python 3.13+, a free Groq API key (https://console.groq.com/keys), and the packages in `requirements.txt`.
 
-### 4. Start the frontend (Terminal 2)
-```bash
-cd frontend
-streamlit run app.py
-# UI opens at http://localhost:8501
-```
+Two servers run simultaneously:
+- **Backend:** `http://localhost:8000` (FastAPI + Uvicorn)
+- **Frontend:** `http://localhost:8501` (Streamlit)
 
-## 📁 Support Documents Included
-| File | Purpose |
-|------|---------|
-| `checkout.html` | Target e-commerce checkout page |
-| `product_specs.md` | Discount codes, pricing, shipping rules |
-| `ui_ux_guide.txt` | UI validation rules, button colors, error styling |
-| `api_endpoints.json` | API contract for coupon and order endpoints |
-| `validation_rules.md` | Detailed form validation rules |
-| `error_messages.md` | All error messages and their element IDs |
+## Features
 
-## 🚀 Usage
-1. Open http://localhost:8501
-2. Upload all files from `assets/` folder
-3. Click "Build Knowledge Base"
-4. Type a prompt: *"Generate test cases for the discount code feature"*
-5. Click "Generate Test Cases"
-6. Select a test case → Click "Generate Selenium Script"
-7. Download and run the script!
+- **Multi-format document support:** PDF, HTML, JSON, Markdown, plain text
+- **Intelligent test case generation:** Uses LLM with RAG to generate contextually relevant test cases
+- **Selenium automation:** Converts test cases into runnable Python scripts
+- **Fast inference:** Groq's API provides quick LLM responses (free tier)
+- **Persistent storage:** Knowledge bases are saved locally in ChromaDB
+- **Interactive UI:** Clean Streamlit interface for easy document upload and testing
 
-## 🐛 Common Errors & Fixes
+## Example Use Case
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `ModuleNotFoundError: groq` | Package not installed | `pip install groq` |
-| `ConnectionError: localhost:8000` | Backend not started | Run `python main.py` in backend/ |
-| `GROQ_API_KEY not found` | .env missing or wrong path | Check `.env` file is in project root |
-| `Collection not found` | KB not built | Click "Build Knowledge Base" first |
-| Slow embedding generation | First run downloads model | Wait 2-3 min, model downloads once |
-| ChromaDB error on Windows | Path issue | Run from project root, not backend/ |
+Included are example docs for an e-commerce checkout page:
+- HTML page with product selection, cart, discount codes, shipping
+- Product specs with discount rules (SAVE15 = 15% off)
+- Form validation rules, UI/UX guidelines, API contracts, error messages
 
-## 📚 Useful Documentation Links
+Upload these files and ask the agent to **"Generate test cases for the discount code feature"** or **"Create tests for form field validation"**—it will instantly produce structured test cases that reference the actual specs.
 
-- FastAPI docs: https://fastapi.tiangolo.com
-- Streamlit docs: https://docs.streamlit.io
-- ChromaDB docs: https://docs.trychroma.com
-- Groq API docs: https://console.groq.com/docs
-- sentence-transformers: https://www.sbert.net
-- Selenium Python docs: https://selenium-python.readthedocs.io
-- LangChain text splitters: https://python.langchain.com/docs/modules/data_connection/document_transformers/
+## Notes
+
+- First run downloads the embedding model (~100MB), takes a few minutes
+- ChromaDB stores data locally in `chroma_db/` folder
+- All API interactions use the free tier of Groq's inference service
+- Generated Selenium scripts require Chrome browser to run
