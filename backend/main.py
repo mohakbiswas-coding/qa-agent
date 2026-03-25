@@ -139,9 +139,47 @@ def kb_status():
     return {"ready": is_knowledge_base_ready()}
 
 
+@app.get("/health")
+async def health_check():
+    """Simple health check endpoint for Render."""
+    return {
+        "status": "ok",
+        "service": "qa-agent-backend",
+        "version": "1.0.0"
+    }
+
+
 # ─── Run Server ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    import os
-    port = int(os.getenv("PORT", 8000))
-    reload = os.getenv("ENV", "development") == "development"
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=reload)
+    import sys
+    import logging
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+        ]
+    )
+    logger = logging.getLogger(__name__)
+    
+    try:
+        port = int(os.getenv("PORT", 8000))
+        reload = os.getenv("ENV", "development") == "development"
+        
+        logger.info(f"🚀 Starting QA Agent Backend")
+        logger.info(f"   Port: {port}")
+        logger.info(f"   Environment: {'development (reload enabled)' if reload else 'production'}")
+        logger.info(f"   Binding to: 0.0.0.0:{port}")
+        
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=port,
+            reload=reload,
+            log_level="info"
+        )
+    except Exception as e:
+        logger.error(f"✗ Failed to start server: {e}", exc_info=True)
+        sys.exit(1)

@@ -2,6 +2,7 @@
 import os
 import json
 import re
+import logging
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -11,13 +12,37 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 import chromadb
 
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # ─── Globals ──────────────────────────────────────────────────────────────────
 # Load the embedding model once (it's large, loading it once is efficient)
-EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+try:
+    logger.info("Loading embedding model (all-MiniLM-L6-v2)...")
+    EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+    logger.info("✓ Embedding model loaded successfully")
+except Exception as e:
+    logger.error(f"✗ Failed to load embedding model: {e}")
+    raise
 
 # ChromaDB stores data in a local folder called "chroma_db"
-CHROMA_CLIENT = chromadb.PersistentClient(path="./chroma_db")
+# Ensure the directory exists
+CHROMA_PATH = "./chroma_db"
+try:
+    os.makedirs(CHROMA_PATH, exist_ok=True)
+    logger.info(f"✓ ChromaDB directory ready at {CHROMA_PATH}")
+except Exception as e:
+    logger.error(f"✗ Failed to create ChromaDB directory: {e}")
+    raise
+
+try:
+    logger.info("Initializing ChromaDB client...")
+    CHROMA_CLIENT = chromadb.PersistentClient(path=CHROMA_PATH)
+    logger.info("✓ ChromaDB client initialized")
+except Exception as e:
+    logger.error(f"✗ Failed to initialize ChromaDB: {e}")
+    raise
+
 COLLECTION_NAME = "qa_knowledge_base"
 
 
