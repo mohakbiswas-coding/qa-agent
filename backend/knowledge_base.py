@@ -16,34 +16,30 @@ import chromadb
 logger = logging.getLogger(__name__)
 
 # ─── Globals ──────────────────────────────────────────────────────────────────
-# Load the embedding model once (it's large, loading it once is efficient)
-try:
-    logger.info("Loading embedding model (all-MiniLM-L6-v2)...")
-    EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-    logger.info("✓ Embedding model loaded successfully")
-except Exception as e:
-    logger.error(f"✗ Failed to load embedding model: {e}")
-    raise
-
-# ChromaDB stores data in a local folder called "chroma_db"
-# Ensure the directory exists
 CHROMA_PATH = "./chroma_db"
-try:
-    os.makedirs(CHROMA_PATH, exist_ok=True)
-    logger.info(f"✓ ChromaDB directory ready at {CHROMA_PATH}")
-except Exception as e:
-    logger.error(f"✗ Failed to create ChromaDB directory: {e}")
-    raise
-
-try:
-    logger.info("Initializing ChromaDB client...")
-    CHROMA_CLIENT = chromadb.PersistentClient(path=CHROMA_PATH)
-    logger.info("✓ ChromaDB client initialized")
-except Exception as e:
-    logger.error(f"✗ Failed to initialize ChromaDB: {e}")
-    raise
-
 COLLECTION_NAME = "qa_knowledge_base"
+_EMBEDDING_MODEL = None
+_CHROMA_CLIENT = None
+
+
+def _get_embedding_model() -> SentenceTransformer:
+    global _EMBEDDING_MODEL
+    if _EMBEDDING_MODEL is None:
+        logger.info("Loading embedding model (all-MiniLM-L6-v2)...")
+        _EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+        logger.info("✓ Embedding model loaded successfully")
+    return _EMBEDDING_MODEL
+
+
+def _get_chroma_client() -> chromadb.PersistentClient:
+    global _CHROMA_CLIENT
+    if _CHROMA_CLIENT is None:
+        os.makedirs(CHROMA_PATH, exist_ok=True)
+        logger.info(f"✓ ChromaDB directory ready at {CHROMA_PATH}")
+        logger.info("Initializing ChromaDB client...")
+        _CHROMA_CLIENT = chromadb.PersistentClient(path=CHROMA_PATH)
+        logger.info("✓ ChromaDB client initialized")
+    return _CHROMA_CLIENT
 
 
 # ─── Document Parsers ─────────────────────────────────────────────────────────
@@ -119,13 +115,15 @@ def build_knowledge_base(documents: List[Dict[str, Any]]) -> Dict[str, Any]:
     Returns:
         Summary dict with stats
     """
+    chroma_client = _get_chroma_client()
+
     # Delete old collection if it exists (fresh start)
     try:
-        CHROMA_CLIENT.delete_collection(COLLECTION_NAME)
+        chroma_client.delete_collection(COLLECTION_NAME)
     except Exception:
         pass
     
-    collection = CHROMA_CLIENT.create_collection(
+    collection = chroma_client.create_collection(
         name=COLLECTION_NAME,
         metadata={"hnsw:space": "cosine"}
     )
@@ -171,7 +169,8 @@ def build_knowledge_base(documents: List[Dict[str, Any]]) -> Dict[str, Any]:
     
     # Generate embeddings in batches (faster)
     print(f"Generating embeddings for {len(all_chunks)} chunks...")
-    embeddings = EMBEDDING_MODEL.encode(all_chunks, show_progress_bar=True)
+    embedding_model = _get_embedding_model()
+    embeddings = embedding_model.encode(all_chunks, show_progress_bar=True)
     all_embeddings = embeddings.tolist()
     
     # Store in ChromaDB
@@ -200,12 +199,14 @@ def retrieve_relevant_chunks(query: str, n_results: int = 5) -> List[Dict]:
     3. Return those chunks
     """
     try:
-        collection = CHROMA_CLIENT.get_collection(COLLECTION_NAME)
+        chroma_client = _get_chroma_client()
+        collection = chroma_client.get_collection(COLLECTION_NAME)
     except Exception:
         return []
     
     # Embed the query
-    query_embedding = EMBEDDING_MODEL.encode([query]).tolist()
+    embedding_model = _get_embedding_model()
+    query_embedding = embedding_model.encode([query]).tolist()
     
     # Search
     results = collection.query(
@@ -228,7 +229,8 @@ def retrieve_relevant_chunks(query: str, n_results: int = 5) -> List[Dict]:
 def get_html_content() -> str:
     """Retrieve the stored HTML content from the knowledge base."""
     try:
-        collection = CHROMA_CLIENT.get_collection(COLLECTION_NAME)
+        chroma_client = _get_chroma_client()
+        collection = chroma_client.get_collection(COLLECTION_NAME)
         results = collection.get(
             where={"source_document": {"$in": ["checkout.html"]}},
             include=["documents"]
@@ -243,7 +245,8 @@ def get_html_content() -> str:
 def is_knowledge_base_ready() -> bool:
     """Check if the knowledge base has been built."""
     try:
-        collection = CHROMA_CLIENT.get_collection(COLLECTION_NAME)
+        chroma_client = _get_chroma_client()
+        collection = chroma_client.get_collection(COLLECTION_NAME)
         return collection.count() > 0
     except Exception:
         return False
