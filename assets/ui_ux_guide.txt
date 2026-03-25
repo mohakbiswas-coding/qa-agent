@@ -1,0 +1,30 @@
+UI/UX Guidelines - E-Shop Checkout
+
+FORM VALIDATION:
+- All required fields must show an inline error message when left empty.
+- Error messages must be displayed in RED text directly below the input field.
+- Error messages should disappear when the user corrects the field.
+- Required fields: Name, Email, Address.
+
+BUTTON STYLES:
+- The "Pay Now" button MUST be green (#008000 or similar green shade).
+- "Add to Cart" buttons should be blue.
+- "Apply" (discount) button should be visible and next to the discount input.
+
+SUCCESS FEEDBACK:
+- After successful payment, show a green success message: "Payment Successful!"
+- The checkout form must be hidden after successful payment.
+- Success message must be clearly visible (large text, green color).
+
+DISCOUNT SECTION:
+- A text input and an "Apply" button must be side by side.
+- Valid code feedback must appear in green.
+- Invalid code feedback must appear in red.
+
+CART:
+- Each cart item must show: product name, quantity input, and price.
+- Total price must update dynamically without page reload.
+
+ACCESSIBILITY:
+- All form fields must have associated labels.
+- Buttons must have descriptive text.

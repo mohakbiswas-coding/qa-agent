@@ -1,0 +1,55 @@
+{
+  "base_url": "http://localhost:8000",
+  "endpoints": {
+    "POST /apply_coupon": {
+      "description": "Validate and apply a discount coupon code",
+      "request_body": {
+        "code": "string"
+      },
+      "responses": {
+        "200": {
+          "valid": true,
+          "discount_percent": 15,
+          "message": "Discount applied: 15% off"
+        },
+        "400": {
+          "valid": false,
+          "message": "Invalid discount code"
+        }
+      }
+    },
+    "POST /submit_order": {
+      "description": "Submit the checkout order",
+      "request_body": {
+        "name": "string",
+        "email": "string",
+        "address": "string",
+        "shipping_method": "standard | express",
+        "payment_method": "credit_card | paypal",
+        "cart_items": "array",
+        "discount_code": "string (optional)"
+      },
+      "responses": {
+        "200": {
+          "status": "success",
+          "order_id": "string",
+          "message": "Payment Successful!"
+        },
+        "422": {
+          "status": "error",
+          "errors": ["Name is required", "Invalid email format"]
+        }
+      }
+    },
+    "GET /products": {
+      "description": "Get list of available products",
+      "responses": {
+        "200": [
+          {"id": 1, "name": "Wireless Headphones", "price": 49.99},
+          {"id": 2, "name": "Laptop Stand", "price": 29.99},
+          {"id": 3, "name": "USB-C Hub", "price": 39.99}
+        ]
+      }
+    }
+  }
+}
