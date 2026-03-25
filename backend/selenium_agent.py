@@ -10,7 +10,7 @@ from knowledge_base import retrieve_relevant_chunks
 load_dotenv()
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = "llama3-70b-8192"
+MODEL = "llama-3.3-70b-versatile"
 
 
 def generate_selenium_script(test_case: Dict, html_content: str) -> Dict[str, Any]:

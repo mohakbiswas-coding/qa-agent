@@ -5,7 +5,7 @@ An intelligent QA agent that builds a "testing brain" from project documentation
 ## 🛠️ Tech Stack
 - **Backend:** FastAPI + Uvicorn
 - **Frontend:** Streamlit
-- **AI/LLM:** Groq API (LLaMA 3 70B) — free tier
+- **AI/LLM:** Groq API (LLaMA 3.3 70B - llama-3.3-70b-versatile) — free tier
 - **Embeddings:** sentence-transformers (all-MiniLM-L6-v2)
 - **Vector DB:** ChromaDB
 - **Document Parsing:** PyMuPDF, BeautifulSoup4
