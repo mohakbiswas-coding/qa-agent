@@ -1,0 +1,17 @@
+# render.yaml - Infrastructure definition for Render deployment
+services:
+  - type: web
+    name: qa-agent-backend
+    env: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && python main.py
+    staticSite:
+      sourceDir: frontend
+    envVars:
+      - key: GROQ_API_KEY
+        scope: run
+        sync: false
+      - key: ENV
+        value: production

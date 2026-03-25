@@ -1,9 +1,10 @@
 import json
+import os
 import streamlit as st
 import requests
 
-# FastAPI backend URL
-API_URL = "http://localhost:8000"
+# FastAPI backend URL - read from Streamlit secrets or environment
+API_URL = st.secrets.get("API_BASE_URL") if "API_BASE_URL" in st.secrets else os.getenv("API_BASE_URL", "http://localhost:8000")
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
